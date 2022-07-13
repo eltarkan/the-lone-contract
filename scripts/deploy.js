@@ -6,9 +6,16 @@ async function main() {
     console.log("Account balance:", (await deployer.getBalance()).toString());
 
     const Game = await ethers.getContractFactory("Game");
-    const token = await Game.deploy();
+    const game = await Game.deploy();
 
-    console.log("Game contract address:", token.address);
+    console.log("Game contract address:", game.address);
+
+
+    const Coin = await ethers.getContractFactory("Coin");
+    const coin = await Coin.deploy(9900000000000000000000000000000);
+
+    console.log("Coin contract address:", coin.address);
+
 }
 
 main()
