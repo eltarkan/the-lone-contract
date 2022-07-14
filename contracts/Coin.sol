@@ -21,19 +21,60 @@ interface IERC20 {
 contract Coin is IERC20 {
     using SafeMath for uint256;
 
-    string public constant name = "TheLoneToken";
-    string public constant symbol = "TLT";
-    uint8 public constant decimals = 18;
+    string public constant name = "Elder Coin";
+    string public constant symbol = "EC";
+    uint8 public constant decimals = 2;
+
+    mapping(string => uint256) public collaborations;
+    mapping(string => uint256) public collaborationStash;
 
     mapping(address => uint256) balances;
     mapping(address => mapping (address => uint256)) allowed;
 
     uint256 totalSupply_;
+    uint256 remainingSupply;
 
-    constructor(uint256 total) public {
+    constructor() {
+        uint256 total;
+        total = 25 * 10 ** 12;
         totalSupply_ = total;
         balances[msg.sender] = totalSupply_;
+        remainingSupply = totalSupply_;
     }
+
+    // Collaboration section //
+
+    function collaborationCreate(string memory _name, uint256 _requiredBudget) public {
+        require(_requiredBudget <= remainingSupply);
+        remainingSupply = remainingSupply - _requiredBudget;
+        collaborations[_name] = _requiredBudget;
+        collaborationStash[_name] = _requiredBudget;
+    }
+
+    function collaborationShowStash(string memory _name) public view returns (uint) {
+        return collaborations[_name];
+    }
+
+    function collaborationShowTotalSupply(string memory _name) public view returns (uint) {
+        return collaborationStash[_name];
+    }
+
+    function collaborationDepositToStash(address _account, string memory _collaborationName, uint _amount) public returns (bool) {
+        require(_amount <= balances[_account]);
+        balances[_account] = balances[_account].sub(_amount);
+        collaborationStash[_collaborationName] = collaborationStash[_collaborationName].add(_amount);
+        return true;
+    }
+
+    function collaborationWithdrawalFromStash(address _account, string memory _collaborationName, uint _amount) public returns (bool) {
+        require(_amount <= collaborationStash[_collaborationName]);
+        collaborationStash[_collaborationName] = collaborationStash[_collaborationName].sub(_amount);
+        balances[_account] = balances[_account].add(_amount);
+        return true;
+    }
+
+    // Collaboration section //
+
 
     function totalSupply() public override view returns (uint256) {
         return totalSupply_;
@@ -50,7 +91,6 @@ contract Coin is IERC20 {
         emit Transfer(msg.sender, receiver, numTokens);
         return true;
     }
-
     function approve(address delegate, uint256 numTokens) public override returns (bool) {
         allowed[msg.sender][delegate] = numTokens;
         emit Approval(msg.sender, delegate, numTokens);

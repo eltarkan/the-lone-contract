@@ -12,7 +12,9 @@ async function main() {
 
 
     const Coin = await ethers.getContractFactory("Coin");
-    const coin = await Coin.deploy(9900000000000000000000000000000);
+    const decimals = 8;
+    const supply = 396000000 * (10**decimals);
+    const coin = await Coin.deploy(supply.toLocaleString('fullwide', {useGrouping:false}));
 
     console.log("Coin contract address:", coin.address);
 
